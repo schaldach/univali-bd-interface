@@ -1,6 +1,7 @@
 print("Hello World")
 
 import mysql.connector
+from tabulate import tabulate
 
 # Define connection details
 connection = mysql.connector.connect(
@@ -76,8 +77,9 @@ try:
             if full_command.strip().upper().startswith("SELECT"):
                 # fetchall() irá pegar todas as linhas resultadas do último SELECT executado
                 results = cursor.fetchall()
-                for row in results:
-                    print(row)
+                print("\n"+tabulate(results, headers=[tup[0] for tup in cursor.description]))
+                # o tabulate irá receber uma lista de tuplas e imprimir de forma organizada
+                # cursor.description terá informações sobre cada uma das colunas, em tuplas, e o 1° item da tupla é o nome da coluna
             # senão, executar o comando
             else:
                 # equivalente ao comando COMMIT; se estivesse em uma transação, o que irá 
@@ -91,6 +93,7 @@ try:
 
         else:
             print("Opção inválida, tente novamente")
+        input("Digite Enter para continuar")
 
 except mysql.connector.Error as e:
     print("Ocorreu o seguinte erro: "+e)
