@@ -4,4 +4,6 @@
 
 Após clonar o repositório, CTRL+SHIFT+P no Vscode para criar um ambiente virtual, selecionar a versão do python, e selecionar "requirements.txt" para baixar as bibliotecas necessárias. 
 
+Por último, é preciso trocar o nome e senha do usuário desejado no arquivo "userdata.py". As mudanças neste arquivo não serão registradas
+
 Para executar então basta clicar no símbolo de executar em cima do script.py
