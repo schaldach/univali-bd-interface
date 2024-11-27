@@ -38,7 +38,7 @@ def input_command_fields(choice_number):
         # retirando última vírgula
         full_command = full_command[:-1]
         full_command += " WHERE id IN ("
-        full_command += input("Digite os ids do registros a serem atualizados, separados por vírgula (,): ")
+        full_command += input("Digite os ids dos registros a serem atualizados, separados por vírgula (,): ")
         full_command += ")"
 
     # o fluxo do INSERT vai ser um pouco diferente, para ser mais automático   
