@@ -8,24 +8,41 @@ commands = [
         "required":["Digite o nome da tabela: "]
     },
     {
-        "command":["SELECT * FROM ", " WHERE id = "], 
-        "required":["Digite o nome da tabela: ", "Digite o id do registro: "]
+        "command":["SELECT * FROM ", " WHERE id IN (",")"], 
+        "required":["Digite o nome da tabela: ", "Digite os ids dos registros a serem buscados, separados por vírgula (,): "]
     },
     {
-        "command":["UPDATE "," SET ", " = "," WHERE id = "], 
-        "required":["Digite o nome da tabela: ", "Digite o nome da coluna: ", "Digite o novo valor da coluna", "Digite o id do registro: "]
-    },
-    {
-        "command":["DELETE FROM ", " WHERE id = "], 
-        "required":["Digite o nome da tabela: ", "Digite o id do registro: "]
+        "command":["DELETE FROM ", " WHERE id IN (",")"], 
+        "required":["Digite o nome da tabela: ", "Digite os ids dos registros a serem deletados, separados por vírgula (,): "]
     }
 ]
 
 def input_command_fields(choice_number):
     full_command = ""
 
-    # o fluxo do INSERT vai ser um pouco diferente, ele vai pedir coisas a mais do que somente preencher o valor no comando
-    if choice_number == 4:
+    # o fluxo do UPDATE vai ser um pouco diferente, para ser mais automático   
+    if choice_number == 3:
+        # fazendo sem loop porque, como só são 2 comandos, fica mais fácil...
+        full_command += "UPDATE "
+        full_command += input("Digite o nome da tabela: ")
+        full_command += " SET "
+        # salvando em variável porque vamos usar depois
+        fields = input("Digite o nome das colunas a serem atualizadas, separados por vírgula (,): ")
+
+        for column in fields.split(","):
+            full_command += f"{column} = "
+            # se for uma string, é preciso que o usuário coloque aspas ("")
+            full_command += input(f"Digite o novo valor de {column}: ")
+            full_command += ","
+
+        # retirando última vírgula
+        full_command = full_command[:-1]
+        full_command += " WHERE id IN ("
+        full_command += input("Digite os ids do registros a serem atualizados, separados por vírgula (,): ")
+        full_command += ")"
+
+    # o fluxo do INSERT vai ser um pouco diferente, para ser mais automático   
+    elif choice_number == 4:
         values_to_insert = int(input("Digite quantas linhas serão preenchidas: "))
 
         # fazendo sem loop porque, como só são 2 comandos, fica mais fácil...
@@ -33,7 +50,7 @@ def input_command_fields(choice_number):
         full_command += input("Digite o nome da tabela: ")
         full_command += "("
         # salvando em variável porque vamos usar depois
-        fields = input("Digite o nome dos campos a serem preenchidos, separados por vírgula (,): ")
+        fields = input("Digite o nome das colunas a serem preenchidas, separados por vírgula (,): ")
         full_command += fields
         full_command += ") VALUES "
 
@@ -53,17 +70,19 @@ def input_command_fields(choice_number):
     else:
         for index, command_text in enumerate(commands[choice_number]["command"]):
             full_command += command_text
-            full_command += input(commands[choice_number]["required"][index])
+            # se tiver valor, pedir ele. Senão, é porque o comando acabou (isso vale para os comandos com ")" no final)
+            full_command += input(commands[choice_number]["required"][index]) if index < len(commands[choice_number]["required"]) else ""
 
     full_command += ";"
     return full_command
 
 try:
+    # conexão com o mysql
     connection = mysql.connector.connect(
-        host="localhost",      # Hostname or IP address of your MySQL server
-        user=userdata.username,  # Your MySQL username
-        password=userdata.password, # Your MySQL password
-        database="controle_lius"  # Database name to connect to (optional)
+        host="localhost",     
+        user=userdata.username,  
+        password=userdata.password, 
+        database="controle_lius" 
     )
     try:
         # o "cursor" neste caso não é equivalente ao cursor do MySQL, mas sim apenas uma abstração do Python
@@ -74,9 +93,9 @@ try:
             print("\n-------")
             print("Menu:")
             print("1. Selecionar todos de uma tabela")
-            print("2. Selecionar linha de uma tabela")
-            print("3. Atualizar um campo de uma linha de uma tabela")
-            print("4. Deletar uma linha de uma tabela")
+            print("2. Selecionar linha(s) de uma tabela")
+            print("3. Deletar linha(s) de uma tabela")
+            print("4. Atualizar campo(s) de linha(s) de uma tabela")
             print("5. Inserir linha(s) em uma tabela")
             print("6. Digitar comando SQL customizado")
             print("7. Sair")
@@ -88,6 +107,7 @@ try:
             if choice in list(range(1,7)):
                 # se for 6, pedimos o comando, senão, montamos ele de acordo com os comandos pré-determinados
                 full_command = input_command_fields(choice-1) if choice<6 else input("Digite o comando SQL a ser executado: ")
+                print(full_command)
 
                 try:
                     # executar comando retornado
@@ -115,12 +135,13 @@ try:
 
             else:
                 print("Opção inválida, tente novamente")
+            # esperar input do usuário para continuar
             input("Digite Enter para continuar")
 
     except mysql.connector.Error as e:
         print("Ocorreu o seguinte erro: "+e)
 
-    finally:
+    finally: # fechar conexão 
         cursor.close()
         connection.close()
 except:
